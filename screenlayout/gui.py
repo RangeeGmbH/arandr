@@ -109,9 +109,43 @@ class Application:
     </ui>
     """
 
-    def __init__(self, file=None, randr_display=None, force_version=False):
+    uixml_lockdown = """
+    <ui>
+        <menubar name="MenuBar">
+            <menu action="Layout">
+                <menuitem action="Save" />
+                <separator />
+                <menuitem action="Apply" />
+                <separator />
+                <menuitem action="Quit" />
+            </menu>
+            <menu action="View">
+                <menuitem action="Zoom4" />
+                <menuitem action="Zoom8" />
+                <menuitem action="Zoom16" />
+            </menu>
+            <menu action="Outputs" name="Outputs">
+                <menuitem action="OutputsDummy" />
+            </menu>
+            <menu action="Help">
+                <menuitem action="About" />
+            </menu>
+        </menubar>
+        <toolbar name="ToolBar">
+            <toolitem action="Save" />
+            <toolitem action="Apply" />
+            <separator />
+            <toolitem action="Quit" />
+        </toolbar>
+    </ui>
+    """
+
+    def __init__(self, file=None, randr_display=None, force_version=False, lockdown=False):
         self.window = window = Gtk.Window()
         window.props.title = "Screen Layout Editor"
+
+        self.lockdown = lockdown
+        self.file = file
 
         # actions
         actiongroup = Gtk.ActionGroup('default')
@@ -119,6 +153,7 @@ class Application:
             ("Layout", None, _("_Layout")),
             ("New", Gtk.STOCK_NEW, None, None, None, self.do_new),
             ("Open", Gtk.STOCK_OPEN, None, None, None, self.do_open),
+            ("Save", Gtk.STOCK_SAVE, None, None, None, self.do_save),
             ("SaveAs", Gtk.STOCK_SAVE_AS, None, None, None, self.do_save_as),
 
             ("Apply", Gtk.STOCK_APPLY, None, '<Control>Return', None, self.do_apply),
@@ -151,7 +186,10 @@ class Application:
 
         self.uimanager.insert_action_group(actiongroup, 0)
 
-        self.uimanager.add_ui_from_string(self.uixml)
+        if self.lockdown:
+            self.uimanager.add_ui_from_string(self.uixml_lockdown)
+        else:
+            self.uimanager.add_ui_from_string(self.uixml)
 
         # widget
         self.widget = widget.ARandRWidget(
@@ -247,6 +285,15 @@ class Application:
             self.filetemplate = self.widget.load_from_file(filename)
 
     @actioncallback
+    def do_save(self):
+        try:
+            self.file
+        except NameError:
+            pass
+        else:
+            self.widget.save_to_file(self.file, self.filetemplate)
+
+    @actioncallback
     def do_save_as(self):
         dialog = self._new_file_dialog(
             _("Save Layout"), Gtk.FileChooserAction.SAVE, Gtk.STOCK_SAVE
@@ -332,6 +379,11 @@ def main():
         help='Even run with untested XRandR versions',
         action='store_true'
     )
+    parser.add_option(
+        '--lockdown',
+        help='Lockdown',
+        action='store_true'
+    )
 
     (options, args) = parser.parse_args()
     if not args:
@@ -344,6 +396,7 @@ def main():
     app = Application(
         file=file_to_open,
         randr_display=options.randr_display,
-        force_version=options.force_version
+        force_version=options.force_version,
+        lockdown=options.lockdown
     )
     app.run()

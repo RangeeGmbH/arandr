@@ -18,6 +18,7 @@
 # pylint: disable=deprecated-method,deprecated-module,wrong-import-order,missing-docstring,wrong-import-position
 
 import os
+import os.path
 import optparse
 import inspect
 
@@ -196,7 +197,7 @@ class Application:
             display=randr_display, force_version=force_version,
             window=self.window
         )
-        if file is None:
+        if (file is None) or (not os.path.isfile(file)):
             self.filetemplate = self.widget.load_from_x()
         else:
             self.filetemplate = self.widget.load_from_file(file)

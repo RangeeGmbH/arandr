@@ -1,22 +1,23 @@
 # ARandR -- Another XRandR GUI
 # Copyright (C) 2008 -- 2011 chrysn <chrysn@fsfe.org>
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Main GUI for ARandR"""
 
 import os
+import os.path
 import optparse
 import inspect
 
@@ -106,7 +107,7 @@ class Application(object):
         </toolbar>
     </ui>
     """
-    
+
     uixml_lockdown = """
     <ui>
         <menubar name="MenuBar">
@@ -141,7 +142,7 @@ class Application(object):
     def __init__(self, file=None, randr_display=None, force_version=False, lockdown=False):
         self.window = window = gtk.Window()
         window.props.title = "Screen Layout Editor"
-        
+
         self.lockdown = lockdown
         self.file = file
 
@@ -193,7 +194,7 @@ class Application(object):
 
         # widget
         self.widget = widget.ARandRWidget(display=randr_display, force_version=force_version)
-        if file is None:
+        if (file is None) or (not os.path.isfile(file)):
             self.filetemplate = self.widget.load_from_x()
         else:
             self.filetemplate = self.widget.load_from_file(file)

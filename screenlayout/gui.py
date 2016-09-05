@@ -1,22 +1,23 @@
 # ARandR -- Another XRandR GUI
 # Copyright (C) 2008 -- 2011 chrysn <chrysn@fsfe.org>
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """Main GUI for ARandR"""
 
 import os
+import os.path
 import optparse
 import inspect
 
@@ -107,9 +108,43 @@ class Application(object):
     </ui>
     """
 
-    def __init__(self, file=None, randr_display=None, force_version=False):
+    uixml_lockdown = """
+    <ui>
+        <menubar name="MenuBar">
+            <menu action="Layout">
+                <menuitem action="Save" />
+                <separator />
+                <menuitem action="Apply" />
+                <separator />
+                <menuitem action="Quit" />
+            </menu>
+            <menu action="View">
+                <menuitem action="Zoom4" />
+                <menuitem action="Zoom8" />
+                <menuitem action="Zoom16" />
+            </menu>
+            <menu action="Outputs" name="Outputs">
+                <menuitem action="OutputsDummy" />
+            </menu>
+            <menu action="Help">
+                <menuitem action="About" />
+            </menu>
+        </menubar>
+        <toolbar name="ToolBar">
+            <toolitem action="Save" />
+            <toolitem action="Apply" />
+            <separator />
+            <toolitem action="Quit" />
+        </toolbar>
+    </ui>
+    """
+
+    def __init__(self, file=None, randr_display=None, force_version=False, lockdown=False):
         self.window = window = gtk.Window()
         window.props.title = "Screen Layout Editor"
+
+        self.lockdown = lockdown
+        self.file = file
 
         # actions
         actiongroup = gtk.ActionGroup('default')
@@ -117,6 +152,7 @@ class Application(object):
             ("Layout", None, _("_Layout")),
             ("New", gtk.STOCK_NEW, None, None, None, self.do_new),
             ("Open", gtk.STOCK_OPEN, None, None, None, self.do_open),
+            ("Save", gtk.STOCK_SAVE, None, None, None, self.do_save),
             ("SaveAs", gtk.STOCK_SAVE_AS, None, None, None, self.do_save_as),
 
             ("Apply", gtk.STOCK_APPLY, None, '<Control>Return', None, self.do_apply),
@@ -151,11 +187,14 @@ class Application(object):
 
         self.uimanager.insert_action_group(actiongroup, 0)
 
-        self.uimanager.add_ui_from_string(self.uixml)
+        if self.lockdown:
+            self.uimanager.add_ui_from_string(self.uixml_lockdown)
+        else:
+            self.uimanager.add_ui_from_string(self.uixml)
 
         # widget
         self.widget = widget.ARandRWidget(display=randr_display, force_version=force_version)
-        if file is None:
+        if (file is None) or (not os.path.isfile(file)):
             self.filetemplate = self.widget.load_from_x()
         else:
             self.filetemplate = self.widget.load_from_file(file)
@@ -235,6 +274,15 @@ class Application(object):
             self.filetemplate = self.widget.load_from_file(f)
 
     @actioncallback
+    def do_save(self):
+        try:
+            self.file
+        except NameError:
+            pass
+        else:
+            self.widget.save_to_file(self.file, self.filetemplate)
+
+    @actioncallback
     def do_save_as(self):
         d = self._new_file_dialog(_("Save Layout"), gtk.FILE_CHOOSER_ACTION_SAVE, gtk.STOCK_SAVE)
         d.props.do_overwrite_confirmation = True
@@ -304,6 +352,7 @@ def main():
     p = optparse.OptionParser(usage="%prog [savedfile]", description="Another XRandrR GUI", version="%%prog %s"%__version__)
     p.add_option('--randr-display', help='Use D as display for xrandr (but still show the GUI on the display from the environment; e.g. `localhost:10.0`)', metavar='D')
     p.add_option('--force-version', help='Even run with untested XRandR versions', action='store_true')
+    p.add_option('--lockdown', help='Lockdown', action='store_true')
 
     (options, args) = p.parse_args()
     if len(args) == 0:
@@ -316,6 +365,7 @@ def main():
     a = Application(
             file=file_to_open,
             randr_display=options.randr_display,
-            force_version=options.force_version
+            force_version=options.force_version,
+            lockdown=options.lockdown
             )
     a.run()

@@ -1,3 +1,9 @@
+arandr (0.1.10-0rangee1) rangeeos; urgency=medium
+
+  * Update to version 0.1.10
+
+ -- René Vögeli <rvoegeli@rangee.com>  Wed, 04 Nov 2020 13:08:12 +0100
+
 arandr (0.1.9-2-0rangee1) rangeeos; urgency=medium
 
   * Add lockdown mode, where the user is only able to edit a layout provided by command line parameter, apply and save it.

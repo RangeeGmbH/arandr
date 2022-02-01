@@ -114,39 +114,40 @@ class XRandR:
         options = dict((a[0], a[1:]) for a in args.split('--output') if a)
 
         for output_name, output_argument in options.items():
-            output = self.configuration.outputs[output_name]
-            output_state = self.state.outputs[output_name]
-            output.primary = False
-            if output_argument == ['--off']:
-                output.active = False
-            else:
-                if '--primary' in output_argument:
-                    if Feature.PRIMARY in self.features:
-                        output.primary = True
-                    output_argument.remove('--primary')
-                if len(output_argument) % 2 != 0:
-                    raise FileSyntaxError()
-                parts = [
-                    (output_argument[2 * i], output_argument[2 * i + 1])
-                    for i in range(len(output_argument) // 2)
-                ]
-                for part in parts:
-                    if part[0] == '--mode':
-                        for namedmode in output_state.modes:
-                            if namedmode.name == part[1]:
-                                output.mode = namedmode
-                                break
-                        else:
-                            raise FileLoadError("Not a known mode: %s" % part[1])
-                    elif part[0] == '--pos':
-                        output.position = Position(part[1])
-                    elif part[0] == '--rotate':
-                        if part[1] not in ROTATIONS:
-                            raise FileSyntaxError()
-                        output.rotation = Rotation(part[1])
-                    else:
+            if output_name in self.configuration.outputs:
+                output = self.configuration.outputs[output_name]
+                output_state = self.state.outputs[output_name]
+                output.primary = False
+                if output_argument == ['--off']:
+                    output.active = False
+                else:
+                    if '--primary' in output_argument:
+                        if Feature.PRIMARY in self.features:
+                            output.primary = True
+                        output_argument.remove('--primary')
+                    if len(output_argument) % 2 != 0:
                         raise FileSyntaxError()
-                output.active = True
+                    parts = [
+                        (output_argument[2 * i], output_argument[2 * i + 1])
+                        for i in range(len(output_argument) // 2)
+                    ]
+                    for part in parts:
+                        if part[0] == '--mode':
+                            for namedmode in output_state.modes:
+                                if namedmode.name == part[1]:
+                                    output.mode = namedmode
+                                    break
+                            else:
+                                raise FileLoadError("Not a known mode: %s" % part[1])
+                        elif part[0] == '--pos':
+                            output.position = Position(part[1])
+                        elif part[0] == '--rotate':
+                            if part[1] not in ROTATIONS:
+                                raise FileSyntaxError()
+                            output.rotation = Rotation(part[1])
+                        else:
+                            raise FileSyntaxError()
+                    output.active = True
 
     def load_from_x(self):  # FIXME -- use a library
         self.configuration = self.Configuration(self)

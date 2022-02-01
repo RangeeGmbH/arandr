@@ -1,3 +1,9 @@
+arandr (0.1.10-1.2-0rangee1) rangeeos; urgency=medium
+
+  * Prevent KeyError when reading script and referenced output does not exist.
+
+ -- René Vögeli <rvoegeli@rangee.com>  Tue, 01 Feb 2022 09:39:12 +0100
+
 arandr (0.1.10-1.1-0rangee1) rangeeos; urgency=medium
 
   * Add lockdown mode, where the user is only able to edit a layout provided by command line parameter, apply and save it.

@@ -1,3 +1,9 @@
+arandr (0.1.10-1.3-0rangee1) rangeeos; urgency=medium
+
+  * Disable Save function in lockdown mode, if no filename has been set
+
+ -- René Vögeli <rvoegeli@rangee.com>  Wed, 24 Aug 2022 12:06:12 +0200
+
 arandr (0.1.10-1.2-0rangee1) rangeeos; urgency=medium
 
   * Prevent KeyError when reading script and referenced output does not exist.

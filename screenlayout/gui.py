@@ -189,6 +189,13 @@ class Application:
 
         if self.lockdown:
             self.uimanager.add_ui_from_string(self.uixml_lockdown)
+
+            if file is None:
+                save_toolitem = self.uimanager.get_widget("/ui/ToolBar/Save")
+                save_toolitem.destroy()
+                save_menuitem = self.uimanager.get_widget("/ui/MenuBar/Layout/Save")
+                save_menuitem.destroy()
+
         else:
             self.uimanager.add_ui_from_string(self.uixml)
 
